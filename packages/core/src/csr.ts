@@ -1,0 +1,49 @@
+import { Effect, Schema } from "effect";
+import { Pkcs10CertificateRequest } from "@peculiar/x509";
+
+export namespace CSR {
+  export class ParseError extends Schema.TaggedErrorClass()("ParseError", {
+    message: Schema.String,
+    cause: Schema.Defect,
+  }) {}
+
+  export class InvalidHostnameError extends Schema.TaggedErrorClass()("InvalidHostname", {
+    hostname: Schema.String,
+  }) {}
+
+  export const Raw = Schema.String.pipe(Schema.brand("CSR.Raw"));
+  export type Raw = Schema.Schema.Type<typeof Raw>;
+
+  export const Hostname = Schema.String.pipe(Schema.brand("Hostname"));
+  export type Hostname = Schema.Schema.Type<typeof Hostname>;
+
+  export const Info = Schema.Struct({
+    hostname: Schema.String,
+    raw: Raw,
+  });
+  export type Info = Schema.Schema.Type<typeof Info>;
+
+  export const parse = Effect.fn(function* (csr: Raw) {
+    // Step 1: Parse CSR from PEM (native PEM support)
+    const req = yield* Effect.try({
+      try: () => new Pkcs10CertificateRequest(csr),
+      catch: (error) =>
+        new ParseError({
+          message: `Failed to parse CSR`,
+          cause: error,
+        }),
+    });
+
+    // Step 2: Extract Common Name from Subject
+    const cn = req.subjectName.getField("CN");
+    if (!cn)
+      return yield* new InvalidHostnameError({
+        hostname: "",
+      });
+
+    return {
+      hostname: String(cn),
+      raw: csr,
+    } as Info;
+  });
+}

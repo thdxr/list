@@ -1,0 +1,33 @@
+packages:
+  - apps/*
+  - packages/*
+  - tools/*
+
+catalog:
+  "@peculiar/acme-client": ^1.8.2
+  "@peculiar/acme-core": ^1.8.2
+  "@peculiar/acme-protocol": ^1.8.2
+  "@peculiar/x509": ^2.0.0
+  "@types/node": 25.5.0
+  "@typescript/native-preview": 7.0.0-dev.20260328.1
+  asn1js: ^3.0.7
+  bumpp: 11.0.1
+  effect: 4.0.0-beta.42
+  pkijs: ^3.4.0
+  reflect-metadata: ^0.2.2
+  typescript: 6.0.2
+  vite: npm:@voidzero-dev/vite-plus-core@latest
+  vite-plus: 0.1.14
+  vitest: npm:@voidzero-dev/vite-plus-test@latest
+
+catalogMode: prefer
+overrides:
+  vite: "catalog:"
+  vitest: "catalog:"
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"
