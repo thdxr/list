@@ -8,6 +8,7 @@ export namespace Database {
     {
       tunnel: {
         update: (info: Tunnel.Info) => Effect.Effect<Tunnel.Info>;
+        get: (id: Tunnel.ID) => Effect.Effect<Option.Option<Tunnel.Info>>;
         setToken: (token: Tunnel.Token, tunnel: Tunnel.ID) => Effect.Effect<void>;
         fromToken: (token: Tunnel.Token) => Effect.Effect<Option.Option<Tunnel.ID>>;
       };
@@ -36,6 +37,9 @@ export namespace Database {
           }),
         },
         tunnel: {
+          get: Effect.fn(function* (id) {
+            return HashMap.get(tunnels, id);
+          }),
           update: Effect.fn(function* (info) {
             tunnels = HashMap.set(tunnels, info.id, info);
             return info;

@@ -1,5 +1,5 @@
 {
-  "name": "@opentunnel/core",
+  "name": "@opentunnel/server",
   "version": "0.0.0",
   "license": "MIT",
   "repository": {
@@ -11,8 +11,7 @@
   ],
   "type": "module",
   "exports": {
-    "./*": "./src/*.ts",
-    "./package.json": "./package.json"
+    "./*": "./src/*.js"
   },
   "publishConfig": {
     "access": "public"
@@ -25,13 +24,9 @@
     "prepublishOnly": "vp run build"
   },
   "dependencies": {
-    "@peculiar/acme-client": "catalog:",
-    "@peculiar/acme-core": "catalog:",
-    "@peculiar/acme-protocol": "catalog:",
-    "@peculiar/jose": "catalog:",
-    "@peculiar/x509": "catalog:",
-    "effect": "catalog:",
-    "reflect-metadata": "catalog:"
+    "@effect/platform-node": "catalog:",
+    "@opentunnel/core": "workspace:*",
+    "effect": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

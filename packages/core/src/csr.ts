@@ -7,10 +7,6 @@ export namespace CSR {
     cause: Schema.Defect,
   }) {}
 
-  export class InvalidHostnameError extends Schema.TaggedErrorClass()("InvalidHostname", {
-    hostname: Schema.String,
-  }) {}
-
   export const Raw = Schema.String.pipe(Schema.brand("CSR.Raw"));
   export type Raw = Schema.Schema.Type<typeof Raw>;
 
@@ -18,8 +14,12 @@ export namespace CSR {
   export type Hostname = Schema.Schema.Type<typeof Hostname>;
 
   export const Info = Schema.Struct({
-    hostname: Schema.String,
+    hostname: CSR.Hostname,
     raw: Raw,
+    certificate: Schema.declare<Pkcs10CertificateRequest>(
+      (_): _ is Pkcs10CertificateRequest => true,
+      { identifier: "Pkcs10CertificateRequest" },
+    ),
   });
   export type Info = Schema.Schema.Type<typeof Info>;
 
@@ -36,13 +36,10 @@ export namespace CSR {
 
     // Step 2: Extract Common Name from Subject
     const cn = req.subjectName.getField("CN");
-    if (!cn)
-      return yield* new InvalidHostnameError({
-        hostname: "",
-      });
 
     return {
       hostname: String(cn),
+      certificate: req,
       raw: csr,
     } as Info;
   });
