@@ -44,6 +44,20 @@ const program = Effect.gen(function* () {
       csr: csr.toString() as CSR.Raw,
     },
   });
+
+  yield* Effect.log("Waiting for certificate...");
+
+  while (true) {
+    const cert = yield* client.tunnel.certificate({
+      params: {
+        id: tunnel.tunnel.id,
+      },
+    });
+    yield* Effect.log("certificate state", cert.state.type);
+    if (cert.state.type === "failed" || cert.state.type === "ready") break;
+    yield* Effect.sleep(1000);
+  }
+  yield* Effect.log("certificate ready!");
 }).pipe(Effect.provide(Logger.layer([Logger.consolePretty()])), Effect.provide(ApiClient.layer));
 
 await Effect.runPromise(program);
