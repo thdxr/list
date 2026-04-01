@@ -4,20 +4,20 @@ packages:
   - tools/*
 
 catalog:
-  "@peculiar/acme-client": ^1.8.2
-  "@peculiar/acme-core": ^1.8.2
-  "@peculiar/acme-protocol": ^1.8.2
-  "@peculiar/jose": ^1.8.2
-  "@peculiar/x509": ^2.0.0
+  "@effect/platform-node": 4.0.0-beta.42
+  "@peculiar/acme-client": 1.8.2
+  "@peculiar/acme-core": 1.8.2
+  "@peculiar/acme-protocol": 1.8.2
+  "@peculiar/jose": 1.8.2
+  "@peculiar/x509": 2.0.0
   "@types/node": 25.5.0
   "@typescript/native-preview": 7.0.0-dev.20260328.1
-  asn1js: ^3.0.7
+  asn1js: 3.0.7
   bumpp: 11.0.1
-  "@effect/language-service": 0.84.2
-  effect: 4.0.0-beta.43
-  "@effect/platform-node": 4.0.0-beta.43
-  pkijs: ^3.4.0
-  reflect-metadata: ^0.2.2
+  effect: 4.0.0-beta.42
+  pkijs: 3.4.0
+  reflect-metadata: 0.2.2
+  tsx: 4.21.0
   typescript: 6.0.2
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vite-plus: 0.1.14

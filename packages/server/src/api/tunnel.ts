@@ -8,7 +8,7 @@ import { TunnelAuth } from "../definition/tunnel.ts";
 // Server-side middleware implementation - temporarily bypassing auth
 export const TunnelAuthLive = Layer.effect(
   TunnelAuth,
-  Effect.gen(function* () {
+  Effect.sync(() => {
     return TunnelAuth.of({
       bearer: Effect.fn(function* (httpEffect) {
         // Auth temporarily disabled - always allow

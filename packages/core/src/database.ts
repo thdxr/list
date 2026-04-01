@@ -19,39 +19,33 @@ export namespace Database {
     }
   >()("Database") {}
 
-  export const Memory = Layer.effect(
-    Service,
-    Effect.gen(function* () {
-      let tokens = HashMap.empty<Tunnel.Token, Tunnel.ID>();
-      let tunnels = HashMap.empty<Tunnel.ID, Tunnel.Info>();
-      let certificates = HashMap.empty<Certificate.ID, Certificate.Info>();
+  export const Memory = Layer.sync(Service, () => {
+    let tokens = HashMap.empty<Tunnel.Token, Tunnel.ID>();
+    let tunnels = HashMap.empty<Tunnel.ID, Tunnel.Info>();
+    let certificates = HashMap.empty<Certificate.ID, Certificate.Info>();
 
-      return Service.of({
-        certificate: {
-          update: Effect.fn(function* (info) {
+    return Service.of({
+      certificate: {
+        update: (info) =>
+          Effect.sync(() => {
             certificates = HashMap.set(certificates, info.id, info);
             return info;
           }),
-          get: Effect.fn(function* (id) {
-            return HashMap.get(certificates, id);
-          }),
-        },
-        tunnel: {
-          get: Effect.fn(function* (id) {
-            return HashMap.get(tunnels, id);
-          }),
-          update: Effect.fn(function* (info) {
+        get: (id) => Effect.sync(() => HashMap.get(certificates, id)),
+      },
+      tunnel: {
+        get: (id) => Effect.sync(() => HashMap.get(tunnels, id)),
+        update: (info) =>
+          Effect.sync(() => {
             tunnels = HashMap.set(tunnels, info.id, info);
             return info;
           }),
-          setToken: Effect.fn(function* (token, tunnel) {
+        setToken: (token, tunnel) =>
+          Effect.sync(() => {
             tokens = HashMap.set(tokens, token, tunnel);
           }),
-          fromToken: Effect.fn(function* (token) {
-            return HashMap.get(tokens, token);
-          }),
-        },
-      });
-    }),
-  );
+        fromToken: (token) => Effect.sync(() => HashMap.get(tokens, token)),
+      },
+    });
+  });
 }

@@ -6,6 +6,9 @@ export default defineConfig({
       tsgo: true,
     },
     exports: true,
+    deps: {
+      alwaysBundle: [/^@opentunnel\/core/],
+    },
   },
   lint: {
     options: {

@@ -1,1 +1,11 @@
-This codebase uses Effect v4 which is not yet documented yet. You can use the explore agent in ~/dev/external/effect-smol to scan its codebase to understand how things should be done. Do not rely on your own knowledge of effect.
+- This codebase uses Effect v4 which is not yet documented yet
+- Do not rely on your own knowledge of Effect (e.g., don't use `Effect.gen` if the codebase uses a different pattern found in effect-smol)
+- When working on Effect-related code, use the explore agent to scan ~/dev/external/effect-smol
+- Use the explore agent to find relevant patterns, types, and implementations in the Effect codebase (e.g., search for similar services, layers, or effect composition patterns)
+- Copy and adapt patterns found in the external repository rather than using what you know about Effect v3 or earlier versions (e.g., use the type signatures and helper functions found in effect-smol, not what you remember from Effect v3 docs)
+- Always verify your implementation against the patterns found in the effect-smol repository (e.g., compare your service definition to similar ones in the external repo)
+- This codebase uses the `vp` tool for development
+- When adding packages with `vp add`, always use `--save-catalog` to add to the workspace catalog instead of package.json
+- The `.npmrc` file has `save-exact=true` configured so packages are pinned by default
+- Run commands in the most granular package you are testing, not at the root (e.g., `cd packages/core && vp test` instead of `vp test` from the root)
+- Common commands: `vp check` (run format, lint, and type checks), `vp lint` (lint code), `vp fmt` (format code), `vp test` (run tests), `vp build` (build for production)

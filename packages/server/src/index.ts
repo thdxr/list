@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as Layer from "effect/Layer";

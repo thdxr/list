@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { Effect, Schema } from "effect";
 import { describe, expect } from "vite-plus/test";
 import { it } from "./effect-test.ts";

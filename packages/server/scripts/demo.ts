@@ -1,7 +1,8 @@
-import { Effect, Layer, Logger } from "effect";
+import { Effect, Logger } from "effect";
 import { ApiClient } from "../src/api/client.js";
+import { CSR } from "@opentunnel/core/csr";
 import "reflect-metadata";
-import { Pkcs10CertificateRequestGenerator } from "@peculiar/x509";
+import { Pkcs10CertificateRequestGenerator, Pkcs10CertificateRequest } from "@peculiar/x509";
 
 const program = Effect.gen(function* () {
   const client = yield* ApiClient;
@@ -30,7 +31,7 @@ const program = Effect.gen(function* () {
         name: `CN=${tunnel.tunnel.hostname}`,
         signingAlgorithm: { name: "ECDSA", hash: "SHA-256" },
         keys,
-      }),
+      }) as Promise<Pkcs10CertificateRequest>,
     catch: (error) =>
       new Error(`Failed to create CSR: ${error instanceof Error ? error.message : String(error)}`),
   });
@@ -40,7 +41,7 @@ const program = Effect.gen(function* () {
       id: tunnel.tunnel.id,
     },
     payload: {
-      csr: csr.toString() as any,
+      csr: csr.toString() as CSR.Raw,
     },
   });
 }).pipe(Effect.provide(Logger.layer([Logger.consolePretty()])), Effect.provide(ApiClient.layer));
