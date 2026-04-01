@@ -180,7 +180,6 @@ export namespace Certificate {
             interval: "5 seconds",
             while: (resp) => resp.content.status === "pending",
           });
-          yield* Effect.log("Authorization status:", validAuth);
 
           if (validAuth.content.status !== "valid") {
             return yield* new Acme.Error({
@@ -214,7 +213,6 @@ export namespace Certificate {
             interval: "3 seconds",
             while: (resp) => resp.content.status === "processing",
           });
-          yield* Effect.log("Order status:", validOrder);
 
           if (validOrder.content.status !== "valid") {
             return yield* new Acme.Error({

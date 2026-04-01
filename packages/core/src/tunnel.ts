@@ -24,7 +24,7 @@ export namespace Tunnel {
     expected: CSR.Hostname,
   }) {}
 
-  export const State = Schema.Literals(["pending", "offline", "online", "deleting"]);
+  export const State = Schema.Literals(["offline", "online"]);
   export type State = Schema.Schema.Type<typeof State>;
 
   export const Info = Schema.Struct({
@@ -90,7 +90,7 @@ export namespace Tunnel {
               // `${id}.${config.OPENTUNNEL_DOMAIN}`,
               config.OPENTUNNEL_DOMAIN,
             ),
-            state: "pending",
+            state: "offline",
           };
           yield* db.tunnel.update(info);
           return { tunnel: info, token: Token.makeUnsafe("asd") };
@@ -100,22 +100,19 @@ export namespace Tunnel {
           return Option.exists(id, (val) => val === tunnel);
         }),
         bind: Effect.fn(function* (tunnelID, csr) {
-          const info = yield* db.tunnel.get(tunnelID);
+          const info = yield* fromID(tunnelID);
 
-          if (Option.isNone(info)) return yield* new NotFoundError({ tunnelID });
-
-          if (csr.hostname !== info.value.hostname)
+          if (csr.hostname !== info.hostname)
             return yield* new InvalidHostnameError({
               provided: csr.hostname,
-              expected: info.value.hostname,
+              expected: info.hostname,
             });
 
           const id = yield* certificate.issue(csr);
 
           yield* db.tunnel.update({
-            ...info.value,
+            ...info,
             certificateID: id,
-            state: "pending",
           });
         }),
       });

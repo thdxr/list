@@ -50,6 +50,8 @@ const createFakeClient = (overrides?: Partial<Acme.Client>): Acme.Client => {
         content: { status: "valid", certificate: "https://acme.test/cert/1" },
       }),
     getCertificate: () => Effect.succeed({ content: [fakeCert] }),
+    key: {} as CryptoKey,
+    thumbprint: "test-thumbprint",
   };
   return { ...defaults, ...overrides };
 };
@@ -60,7 +62,7 @@ const createTestLayer = (clientOverrides?: Partial<Acme.Client>) =>
     Layer.mergeAll(
       Database.Memory,
       Layer.succeed(Acme.Factory, {
-        createClient: () => Effect.succeed(createFakeClient(clientOverrides)),
+        create: () => Effect.succeed(createFakeClient(clientOverrides)),
       }),
     ),
   );
