@@ -12,7 +12,6 @@ import {
 import { Database } from "./database.ts";
 import { CSR } from "./csr.ts";
 import { Acme } from "./acme.ts";
-import { JsonWebKey } from "@peculiar/jose";
 import { AppConfig } from "./config.ts";
 
 export namespace Certificate {
@@ -97,7 +96,11 @@ export namespace Certificate {
   /** Repeatedly run `self` while `predicate` holds, waiting `interval` between attempts. */
   const pollWhile = <A, E, R>(
     self: Effect.Effect<A, E, R>,
-    options: { interval: Duration.Input; while: (a: A) => boolean; maxAttempts?: number },
+    options: {
+      interval: Duration.Input;
+      while: (a: A) => boolean;
+      maxAttempts?: number;
+    },
   ) =>
     Effect.repeat(
       self,
@@ -120,32 +123,11 @@ export namespace Certificate {
 
       let tokenMap = HashMap.empty<Token, ID>();
 
-      const accountKey = yield* Effect.tryPromise({
-        try: async () => {
-          const key = await crypto.subtle.generateKey(
-            { name: "ECDSA", namedCurve: "P-256" },
-            true,
-            ["sign", "verify"],
-          );
-          if (!("publicKey" in key)) throw new Error("Expected key pair");
-          return key;
-        },
-        catch: (cause) => new Acme.Error({ message: "Generate account key", cause }),
-      });
-      const client = yield* acmeFactory.createClient(accountKey, config.ACME_URL);
+      const client = yield* acmeFactory.create(config.ACME_URL);
 
-      yield* client.newAccount({ contact: [`mailto:` + email], termsOfServiceAgreed: true });
-
-      // Compute once; deterministic for a given key
-      const keyThumbprint = yield* Effect.tryPromise({
-        try: async () => {
-          const jwk = await crypto.subtle.exportKey("jwk", accountKey.publicKey);
-          const joseJwk = new JsonWebKey(crypto, jwk);
-          const hex = await joseJwk.getThumbprint();
-          const bytes = hex.match(/.{2}/g)!.map((b: string) => parseInt(b, 16));
-          return toBase64Url(btoa(String.fromCharCode(...bytes)));
-        },
-        catch: (cause) => new Acme.Error({ message: "Compute thumbprint", cause }),
+      yield* client.newAccount({
+        contact: [`mailto:` + email],
+        termsOfServiceAgreed: true,
       });
 
       const acme = Effect.fn("Certificate.acme")(
@@ -163,9 +145,11 @@ export namespace Certificate {
 
           const httpChallenge = auth.content.challenges?.find((c) => c.type === "http-01");
           if (!httpChallenge)
-            return yield* new Acme.Error({ message: "No HTTP-01 challenge found" });
+            return yield* new Acme.Error({
+              message: "No HTTP-01 challenge found",
+            });
 
-          const keyAuth = `${httpChallenge.token}.${keyThumbprint}`;
+          const keyAuth = `${httpChallenge.token}.${client.thumbprint}`;
 
           // 3. Store challenge and trigger validation
           yield* db.certificate.update({
@@ -208,9 +192,13 @@ export namespace Certificate {
 
           // 5. Finalize order with CSR
           if (!order.content.finalize) {
-            return yield* new Acme.Error({ message: "Order has no finalize URL" });
+            return yield* new Acme.Error({
+              message: "Order has no finalize URL",
+            });
           }
-          yield* client.finalize(order.content.finalize, { csr: pemToBase64Url(csr.raw) });
+          yield* client.finalize(order.content.finalize, {
+            csr: pemToBase64Url(csr.raw),
+          });
 
           yield* Effect.log("Finalized, waiting for certificate...");
 
