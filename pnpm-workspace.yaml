@@ -4,6 +4,7 @@ packages:
   - tools/*
 
 catalog:
+  "@effect/language-service": 0.84.2
   "@effect/platform-node": 4.0.0-beta.42
   "@peculiar/acme-client": 1.8.2
   "@peculiar/acme-core": 1.8.2
