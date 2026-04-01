@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { Effect, Schema } from "effect";
 import { Pkcs10CertificateRequest } from "@peculiar/x509";
 
