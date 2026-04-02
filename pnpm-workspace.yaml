@@ -17,6 +17,7 @@ catalog:
   bumpp: 11.0.1
   effect: 4.0.0-beta.42
   pkijs: 3.4.0
+  read-tls-client-hello: 2.0.0
   reflect-metadata: 0.2.2
   tsx: 4.21.0
   typescript: 6.0.2

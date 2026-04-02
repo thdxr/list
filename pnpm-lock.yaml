@@ -42,6 +42,9 @@ catalogs:
     pkijs:
       specifier: 3.4.0
       version: 3.4.0
+    read-tls-client-hello:
+      specifier: 2.0.0
+      version: 2.0.0
     reflect-metadata:
       specifier: 0.2.2
       version: 0.2.2
@@ -125,6 +128,9 @@ importers:
       effect:
         specifier: 'catalog:'
         version: 4.0.0-beta.42
+      read-tls-client-hello:
+        specifier: 'catalog:'
+        version: 2.0.0
       reflect-metadata:
         specifier: 'catalog:'
         version: 0.2.2
@@ -144,6 +150,12 @@ importers:
       vite-plus:
         specifier: 'catalog:'
         version: 0.1.14(@types/node@25.5.0)(jiti@2.6.1)(typescript@6.0.2)(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.3))(yaml@2.8.3)
+
+  packages/server/src/proxy:
+    dependencies:
+      read-tls-client-hello:
+        specifier: 'catalog:'
+        version: 2.0.0
 
 packages:
 
@@ -1116,6 +1128,10 @@ packages:
 
   quansync@1.0.0:
     resolution: {integrity: sha512-5xZacEEufv3HSTPQuchrvV6soaiACMFnq1H8wkVioctoH3TRha9Sz66lOxRwPK/qZj7HPiSveih9yAyh98gvqA==}
+
+  read-tls-client-hello@2.0.0:
+    resolution: {integrity: sha512-zPrnTO77iw1KUjg5QlDzxSRg69SCeWqMI5dY2tEZJc2mDL7RmmpG+RF2Qw9p4JlZ2PUAuJWLFB+ti8o9mTiO6A==}
+    engines: {node: '>=20.0.0'}
 
   redis-errors@1.2.0:
     resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
@@ -2129,6 +2145,10 @@ snapshots:
   pvutils@1.1.5: {}
 
   quansync@1.0.0: {}
+
+  read-tls-client-hello@2.0.0:
+    dependencies:
+      '@types/node': 25.5.0
 
   redis-errors@1.2.0: {}
 

@@ -1,7 +1,0 @@
-{
-  "type": "module",
-  "dependencies": {
-    "@peculiar/x509": "catalog:",
-    "reflect-metadata": "catalog:"
-  }
-}

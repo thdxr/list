@@ -30,6 +30,7 @@
     "@opentunnel/core": "workspace:*",
     "@peculiar/x509": "catalog:",
     "effect": "catalog:",
+    "read-tls-client-hello": "catalog:",
     "reflect-metadata": "catalog:"
   },
   "devDependencies": {
