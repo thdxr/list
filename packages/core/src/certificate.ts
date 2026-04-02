@@ -15,41 +15,41 @@ import { Acme } from "./acme.ts";
 import { AppConfig } from "./config.ts";
 
 export namespace Certificate {
-  export const ID = Schema.String.pipe(Schema.brand("RequestID"));
+  export const ID = Schema.String.pipe(Schema.brand("CertificateID"));
   export type ID = Schema.Schema.Type<typeof ID>;
 
   export const Token = Schema.String.pipe(Schema.brand("ChallengeToken"));
   export type Token = Schema.Schema.Type<typeof Token>;
 
-  export const StateNone = Schema.Struct({
+  export class StateNone extends Schema.Class<StateNone>("Certificate/StateNone")({
     type: Schema.Literal("none"),
-  });
+  }) {}
 
-  export const StateChallenge = Schema.Struct({
+  export class StateChallenge extends Schema.Class<StateChallenge>("Certificate/StateChallenge")({
     type: Schema.Literal("challenge"),
     token: Schema.String,
     key: Schema.String,
-  });
+  }) {}
 
-  export const StateIssuing = Schema.Struct({
+  export class StateIssuing extends Schema.Class<StateIssuing>("Certificate/StateIssuing")({
     type: Schema.Literal("issuing"),
-  });
+  }) {}
 
-  export const StateReady = Schema.Struct({
+  export class StateReady extends Schema.Class<StateReady>("Certificate/StateReady")({
     type: Schema.Literal("ready"),
     certificate: Schema.String,
     chain: Schema.String,
     expiry: Schema.String,
-  });
+  }) {}
 
-  export const StateFailed = Schema.Struct({
+  export class StateFailed extends Schema.Class<StateFailed>("Certificate/StateFailed")({
     type: Schema.Literal("failed"),
     reason: Schema.String,
-  });
+  }) {}
 
-  export const StateExpired = Schema.Struct({
+  export class StateExpired extends Schema.Class<StateExpired>("Certificate/StateExpired")({
     type: Schema.Literal("expired"),
-  });
+  }) {}
 
   export const State = Schema.Union([
     StateNone,
@@ -61,11 +61,10 @@ export namespace Certificate {
   ]);
   export type State = Schema.Schema.Type<typeof State>;
 
-  export const Info = Schema.Struct({
+  export class Info extends Schema.Class<Info>("Certificate")({
     id: ID,
     state: State,
-  });
-  export type Info = Schema.Schema.Type<typeof Info>;
+  }) {}
 
   export class Service extends ServiceMap.Service<
     Service,
@@ -154,11 +153,11 @@ export namespace Certificate {
           // 3. Store challenge and trigger validation
           yield* db.certificate.update({
             id,
-            state: {
+            state: new StateChallenge({
               type: "challenge",
               token: httpChallenge.token,
               key: keyAuth,
-            },
+            }),
           });
 
           tokenMap = HashMap.set(tokenMap, Token.makeUnsafe(httpChallenge.token), id);
@@ -243,12 +242,12 @@ export namespace Certificate {
           // TODO: Parse certificate for expiry date
           yield* db.certificate.update({
             id,
-            state: {
+            state: new StateReady({
               type: "ready",
               certificate: certChain,
               chain: certChain,
               expiry: "TODO",
-            },
+            }),
           });
 
           return certChain;
@@ -260,10 +259,10 @@ export namespace Certificate {
               yield* Effect.logError("ACME flow failed:", err);
               yield* db.certificate.update({
                 id,
-                state: {
+                state: new StateFailed({
                   type: "failed",
                   reason: err.message,
-                },
+                }),
               });
             }),
           ),
@@ -275,7 +274,7 @@ export namespace Certificate {
 
           yield* db.certificate.update({
             id,
-            state: { type: "issuing" },
+            state: new StateIssuing({ type: "issuing" }),
           });
           yield* acme(id, csr).pipe(Effect.forkIn(scope));
           return id;

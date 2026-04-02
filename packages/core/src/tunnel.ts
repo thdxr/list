@@ -27,13 +27,12 @@ export namespace Tunnel {
   export const State = Schema.Literals(["offline", "online"]);
   export type State = Schema.Schema.Type<typeof State>;
 
-  export const Info = Schema.Struct({
+  export class Info extends Schema.Class<Info>("Tunnel/Info")({
     id: ID,
     hostname: CSR.Hostname,
     state: State,
     certificateID: Certificate.ID.pipe(Schema.optional),
-  });
-  export type Info = Schema.Schema.Type<typeof Info>;
+  }) {}
 
   export class Service extends ServiceMap.Service<
     Service,

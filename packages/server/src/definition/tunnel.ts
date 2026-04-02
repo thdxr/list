@@ -26,37 +26,40 @@ export const TunnelApi = HttpApiGroup.make("tunnel")
   .add(
     // Anonymous - no auth required
     HttpApiEndpoint.post("create", "/tunnel", {
-      success: Schema.Struct({
+      success: Schema.Class<{
+        tunnel: Tunnel.Info;
+        token: Tunnel.Token;
+      }>("TunnelApi/CreateResponse")({
         tunnel: Tunnel.Info,
         token: Tunnel.Token,
       }),
     }),
     HttpApiEndpoint.post("bind", "/tunnel/:id/bind", {
-      params: Schema.Struct({
+      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/BindParams")({
         id: Tunnel.ID,
       }),
-      payload: Schema.Struct({
+      payload: Schema.Class<{ csr: CSR.Raw }>("TunnelApi/BindPayload")({
         csr: CSR.Raw,
       }),
       error: [Tunnel.NotFoundError, CSR.ParseError],
     }).middleware(TunnelAuth),
     HttpApiEndpoint.get("get", "/tunnel/:id", {
       success: Tunnel.Info,
-      params: Schema.Struct({
+      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/GetParams")({
         id: Tunnel.ID,
       }),
       error: [Tunnel.NotFoundError],
     }).middleware(TunnelAuth),
     HttpApiEndpoint.get("certificate", "/tunnel/:id/certificate", {
       success: Certificate.Info,
-      params: Schema.Struct({
+      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/CertificateParams")({
         id: Tunnel.ID,
       }),
       error: [Tunnel.NotFoundError, Tunnel.NoCertificateError],
     }).middleware(TunnelAuth),
     HttpApiEndpoint.delete("delete", "/tunnel/:id", {
       success: Schema.Void,
-      params: Schema.Struct({
+      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/DeleteParams")({
         id: Tunnel.ID,
       }),
     }).middleware(TunnelAuth),

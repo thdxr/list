@@ -14,15 +14,14 @@ export namespace CSR {
   export const Hostname = Schema.String.pipe(Schema.brand("Hostname"));
   export type Hostname = Schema.Schema.Type<typeof Hostname>;
 
-  export const Info = Schema.Struct({
+  export class Info extends Schema.Class<Info>("CSR/Info")({
     hostname: CSR.Hostname,
     raw: Raw,
     certificate: Schema.declare<Pkcs10CertificateRequest>(
       (_): _ is Pkcs10CertificateRequest => true,
       { identifier: "Pkcs10CertificateRequest" },
     ),
-  });
-  export type Info = Schema.Schema.Type<typeof Info>;
+  }) {}
 
   export const parse = Effect.fn(function* (csr: Raw) {
     // Step 1: Parse CSR from PEM (native PEM support)

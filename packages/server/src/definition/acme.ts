@@ -6,7 +6,7 @@ export const AcmeApi = HttpApiGroup.make("acme")
   .add(
     HttpApiEndpoint.get("challenge", "/:token", {
       success: Schema.String.pipe(HttpApiSchema.asText()),
-      params: Schema.Struct({
+      params: Schema.Class<{ token: Certificate.Token }>("AcmeApi/ChallengeParams")({
         token: Certificate.Token,
       }),
     }),
