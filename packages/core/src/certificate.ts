@@ -151,14 +151,16 @@ export namespace Certificate {
           const keyAuth = `${httpChallenge.token}.${client.thumbprint}`;
 
           // 3. Store challenge and trigger validation
-          yield* db.certificate.update({
-            id,
-            state: new StateChallenge({
-              type: "challenge",
-              token: httpChallenge.token,
-              key: keyAuth,
+          yield* db.certificate.update(
+            new Info({
+              id,
+              state: new StateChallenge({
+                type: "challenge",
+                token: httpChallenge.token,
+                key: keyAuth,
+              }),
             }),
-          });
+          );
 
           tokenMap = HashMap.set(tokenMap, Token.makeUnsafe(httpChallenge.token), id);
           yield* Effect.log({ token: httpChallenge.token });
@@ -240,15 +242,17 @@ export namespace Certificate {
           tokenMap = HashMap.remove(tokenMap, Token.makeUnsafe(httpChallenge.token));
 
           // TODO: Parse certificate for expiry date
-          yield* db.certificate.update({
-            id,
-            state: new StateReady({
-              type: "ready",
-              certificate: certChain,
-              chain: certChain,
-              expiry: "TODO",
+          yield* db.certificate.update(
+            new Info({
+              id,
+              state: new StateReady({
+                type: "ready",
+                certificate: certChain,
+                chain: certChain,
+                expiry: "TODO",
+              }),
             }),
-          });
+          );
 
           return certChain;
         },
@@ -257,13 +261,15 @@ export namespace Certificate {
             effect,
             Effect.fn(function* (err) {
               yield* Effect.logError("ACME flow failed:", err);
-              yield* db.certificate.update({
-                id,
-                state: new StateFailed({
-                  type: "failed",
-                  reason: err.message,
+              yield* db.certificate.update(
+                new Info({
+                  id,
+                  state: new StateFailed({
+                    type: "failed",
+                    reason: err.message,
+                  }),
                 }),
-              });
+              );
             }),
           ),
       );
@@ -272,10 +278,14 @@ export namespace Certificate {
         issue: Effect.fn(function* (csr) {
           const id = ID.makeUnsafe(crypto.randomUUID());
 
-          yield* db.certificate.update({
-            id,
-            state: new StateIssuing({ type: "issuing" }),
-          });
+          yield* db.certificate
+            .update(
+              new Info({
+                id,
+                state: new StateIssuing({ type: "issuing" }),
+              }),
+            )
+            .pipe(Effect.orDie);
           yield* acme(id, csr).pipe(Effect.forkIn(scope));
           return id;
         }),
@@ -284,10 +294,10 @@ export namespace Certificate {
           if (Option.isNone(id)) {
             return Option.none();
           }
-          return yield* db.certificate.get(id.value);
+          return yield* db.certificate.get(id.value).pipe(Effect.orDie);
         }),
         get: Effect.fn(function* (id) {
-          return yield* db.certificate.get(id);
+          return yield* db.certificate.get(id).pipe(Effect.orDie);
         }),
       });
     }),

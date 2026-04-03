@@ -41,7 +41,7 @@ A wildcard certificate for `*.opentunnel.xyz` is also not enough. A leaf wildcar
   - ACME orchestration for per-host certificates
 - Relay data plane
   - Public TCP listener on port `443`
-  - V1 bridge transport listener at `wss://opentunnel.xyz/api/connect`
+  - V1 bridge transport listener at `wss://opentunnel.xyz/tunnel/:id/connect`
   - Optional future QUIC listener on `UDP 443`
   - Reads TLS ClientHello to extract SNI and ALPN
   - Maps hostname to an active bridge session
@@ -67,7 +67,7 @@ A wildcard certificate for `*.opentunnel.xyz` is also not enough. A leaf wildcar
 5. The control plane validates that the CSR matches exactly `{id}.opentunnel.xyz` and starts ACME `DNS-01`.
 6. The tunnel becomes permanent after bind acceptance. There is no user-visible renewal API for tunnel lifetime.
 7. The client polls `GET /tunnel/{id}/certificate` until the certificate chain is ready.
-8. In v1, the client opens one long-lived authenticated bridge session to `wss://opentunnel.xyz/api/connect`.
+8. In v1, the client opens one long-lived authenticated bridge session to `wss://opentunnel.xyz/tunnel/{id}/connect`.
 9. A browser connects to `{id}.opentunnel.xyz:443`.
 10. The relay reads only the TLS ClientHello bytes needed to parse SNI and ALPN.
 11. The relay looks up the active session for `{id}.opentunnel.xyz`.
@@ -89,8 +89,8 @@ The local app is not exposed directly. The bridge client runs next to it and con
 5. The client calls `POST /tunnel/{id}/bind` with `Authorization: Bearer {token}` and the CSR.
 6. The control plane validates the CSR and starts ACME `DNS-01`.
 7. The client polls `GET /tunnel/{id}/certificate` until the certificate chain is ready.
-8. The client stores the certificate chain next to the private key and opens one long-lived bridge session to the relay.
-9. Immediately after session setup, the client sends an attach message containing the tunnel `id` and bearer `token`.
+8. The client stores the certificate chain next to the private key and opens one long-lived bridge session to `wss://opentunnel.xyz/tunnel/{id}/connect`.
+9. Immediately after session setup, the client sends an attach message containing the bearer `token`.
 10. The relay validates the attach message, marks that hostname as online, and binds future public connections for that hostname to this bridge session.
 
 ## Bridge session model
@@ -99,7 +99,7 @@ The bridge maintains one long-lived session to the relay. V1 uses the WebSocket 
 
 Transport bindings:
 
-- V1 WebSocket: `wss://opentunnel.xyz/api/connect`
+- V1 WebSocket: `wss://opentunnel.xyz/tunnel/:id/connect`
 - Future QUIC: `opentunnel.xyz` on `UDP 443`
 
 Each inbound public TCP connection becomes one logical bridge channel on that session.
@@ -161,7 +161,6 @@ Attach request:
 ```json
 {
   "type": "attach",
-  "id": "6hm7q9cw1p4x8kt2vd5r",
   "token": "rly_...",
   "transport": "ws",
   "client": { "version": "0.1.0", "max_conns": 256 }
@@ -323,7 +322,7 @@ QUIC notes:
 
 Transport rules:
 
-- Connect to `wss://opentunnel.xyz/api/connect`
+- Connect to `wss://opentunnel.xyz/tunnel/:id/connect`
 - Require WebSocket subprotocol `opentunnel`
 - The bridge is always the WebSocket client and the relay is always the WebSocket server
 - One WebSocket connection carries the full bridge session
@@ -868,7 +867,7 @@ Recommended `state.json` contents:
   "host": "6hm7q9cw1p4x8kt2vd5r.opentunnel.xyz",
   "token": "rly_...",
   "control_base": "https://opentunnel.xyz/api",
-  "bridge_url": "wss://opentunnel.xyz/api/connect",
+  "bridge_url": "wss://opentunnel.xyz/tunnel/{id}/connect",
   "upstream": "http://127.0.0.1:3000"
 }
 ```
@@ -914,7 +913,7 @@ V1 topology:
 
 - One control-plane API service
 - One ACME worker service
-- One relay edge service handling public `TCP 443`, `https://opentunnel.xyz/api/*`, and `wss://opentunnel.xyz/api/connect`
+- One relay edge service handling public `TCP 443`, `https://opentunnel.xyz/api/*`, and `wss://opentunnel.xyz/tunnel/:id/connect`
 - One durable database for tunnel and certificate metadata
 - One apex `opentunnel.xyz` DNS entry pointing at that region
 - One wildcard DNS entry for `*.opentunnel.xyz` pointing at that region
@@ -974,7 +973,7 @@ The minimum manual demo is:
 
 - Start with public `TCP 443` plus bridge HTTPS on `443`
 - Route `https://opentunnel.xyz/api/*` to the control plane
-- Route `wss://opentunnel.xyz/api/connect` to the bridge transport handler
+- Route `wss://opentunnel.xyz/tunnel/:id/connect` to the bridge transport handler
 - Do not run bridge QUIC in v1
 - Do not support `HTTP/3` in v1 on the public edge
 - Start with one relay region in v1

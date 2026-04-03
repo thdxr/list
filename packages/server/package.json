@@ -26,15 +26,24 @@
     "prepublishOnly": "vp run build"
   },
   "dependencies": {
+    "@effect/opentelemetry": "catalog:",
     "@effect/platform-node": "catalog:",
+    "@opentelemetry/auto-instrumentations-node": "catalog:",
+    "@opentelemetry/exporter-trace-otlp-http": "catalog:",
+    "@opentelemetry/resources": "catalog:",
+    "@opentelemetry/sdk-node": "catalog:",
+    "@opentelemetry/sdk-trace-base": "catalog:",
+    "@opentelemetry/sdk-trace-node": "catalog:",
+    "@opentelemetry/semantic-conventions": "catalog:",
     "@opentunnel/core": "workspace:*",
     "@peculiar/x509": "catalog:",
     "effect": "catalog:",
-    "read-tls-client-hello": "catalog:",
-    "reflect-metadata": "catalog:"
+    "reflect-metadata": "catalog:",
+    "ws": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/ws": "catalog:",
     "@typescript/native-preview": "catalog:",
     "bumpp": "catalog:",
     "typescript": "catalog:",
@@ -44,7 +53,10 @@
     "@peculiar/acme-client": "1.8.2",
     "@peculiar/acme-core": "1.8.2",
     "@peculiar/jose": "1.8.2",
+    "env-paths": "4.0.0",
+    "is-safe-filename": "0.1.1",
     "pvtsutils": "1.3.6",
+    "read-tls-client-hello": "2.0.0",
     "tslib": [
       "1.14.1",
       "2.8.1"

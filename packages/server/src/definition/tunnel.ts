@@ -22,46 +22,49 @@ export class TunnelAuth extends HttpApiMiddleware.Service<TunnelAuth>()("TunnelA
   error: TunnelUnauthorized,
 }) {}
 
+// Control plane API - prefixed with /api
 export const TunnelApi = HttpApiGroup.make("tunnel")
   .add(
-    // Anonymous - no auth required
     HttpApiEndpoint.post("create", "/tunnel", {
-      success: Schema.Class<{
-        tunnel: Tunnel.Info;
-        token: Tunnel.Token;
-      }>("TunnelApi/CreateResponse")({
+      success: Schema.Struct({
         tunnel: Tunnel.Info,
         token: Tunnel.Token,
       }),
     }),
-    HttpApiEndpoint.post("bind", "/tunnel/:id/bind", {
-      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/BindParams")({
-        id: Tunnel.ID,
-      }),
-      payload: Schema.Class<{ csr: CSR.Raw }>("TunnelApi/BindPayload")({
-        csr: CSR.Raw,
-      }),
-      error: [Tunnel.NotFoundError, CSR.ParseError],
-    }).middleware(TunnelAuth),
     HttpApiEndpoint.get("get", "/tunnel/:id", {
       success: Tunnel.Info,
-      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/GetParams")({
+      params: Schema.Struct({
         id: Tunnel.ID,
       }),
       error: [Tunnel.NotFoundError],
     }).middleware(TunnelAuth),
+    HttpApiEndpoint.post("bind", "/tunnel/:id/certificate", {
+      params: Schema.Struct({
+        id: Tunnel.ID,
+      }),
+      payload: Schema.Struct({
+        csr: CSR.Raw,
+      }),
+      error: [Tunnel.NotFoundError, Tunnel.InvalidHostnameError, CSR.ParseError],
+    }).middleware(TunnelAuth),
     HttpApiEndpoint.get("certificate", "/tunnel/:id/certificate", {
       success: Certificate.Info,
-      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/CertificateParams")({
+      params: Schema.Struct({
         id: Tunnel.ID,
       }),
       error: [Tunnel.NotFoundError, Tunnel.NoCertificateError],
     }).middleware(TunnelAuth),
     HttpApiEndpoint.delete("delete", "/tunnel/:id", {
       success: Schema.Void,
-      params: Schema.Class<{ id: Tunnel.ID }>("TunnelApi/DeleteParams")({
+      params: Schema.Struct({
         id: Tunnel.ID,
       }),
     }).middleware(TunnelAuth),
+    HttpApiEndpoint.get("connect", "/tunnel/:id/connect", {
+      params: Schema.Struct({
+        id: Tunnel.ID,
+      }),
+      error: [Tunnel.NotFoundError, Tunnel.CertificateNotReadyError],
+    }),
   )
   .prefix("/api");

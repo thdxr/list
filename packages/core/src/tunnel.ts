@@ -19,6 +19,11 @@ export namespace Tunnel {
     tunnelID: ID,
   }) {}
 
+  export class CertificateNotReadyError extends Schema.TaggedErrorClass()("CertificateNotReady", {
+    tunnelID: ID,
+    currentState: Schema.String,
+  }) {}
+
   export class InvalidHostnameError extends Schema.TaggedErrorClass()("InvalidHostname", {
     provided: CSR.Hostname,
     expected: CSR.Hostname,
@@ -60,8 +65,8 @@ export namespace Tunnel {
       const config = yield* AppConfig;
       const certificate = yield* Certificate.Service;
 
-      const fromID = Effect.fn(function* (id) {
-        const match = yield* db.tunnel.get(id);
+      const fromID = Effect.fn("Tunnel.fromID")(function* (id) {
+        const match = yield* db.tunnel.get(id).pipe(Effect.orDie);
         if (Option.isNone(match)) {
           return yield* new NotFoundError({ tunnelID: id });
         }
@@ -70,7 +75,7 @@ export namespace Tunnel {
 
       return Service.of({
         fromID,
-        certficiate: Effect.fn(function* (id) {
+        certficiate: Effect.fn("Tunnel.certificate")(function* (id) {
           const info = yield* fromID(id);
           if (!info.certificateID) {
             return yield* new NoCertificateError({ tunnelID: id });
@@ -81,25 +86,25 @@ export namespace Tunnel {
           }
           return cert.value;
         }),
-        create: Effect.fn(function* () {
+        create: Effect.fn("Tunnel.create")(function* () {
           const id = ID.makeUnsafe(crypto.randomUUID());
-          const info: Tunnel.Info = {
+          const info = new Tunnel.Info({
             id,
             hostname: CSR.Hostname.makeUnsafe(
               // `${id}.${config.OPENTUNNEL_DOMAIN}`,
               config.OPENTUNNEL_DOMAIN,
             ),
             state: "offline",
-          };
-          yield* db.tunnel.update(info);
+          });
+          yield* db.tunnel.update(info).pipe(Effect.orDie);
           return { tunnel: info, token: Token.makeUnsafe("asd") };
         }),
-        auth: Effect.fn(function* (tunnel, token) {
-          const id = yield* db.tunnel.fromToken(token);
+        auth: Effect.fn("Tunnel.auth")(function* (tunnel, token) {
+          const id = yield* db.tunnel.fromToken(token).pipe(Effect.orDie);
           return Option.exists(id, (val) => val === tunnel);
         }),
-        bind: Effect.fn(function* (tunnelID, csr) {
-          const info = yield* fromID(tunnelID);
+        bind: Effect.fn("Tunnel.bind")(function* (tunnelID, csr) {
+          const info = yield* fromID(tunnelID).pipe(Effect.orDie);
 
           if (csr.hostname !== info.hostname)
             return yield* new InvalidHostnameError({
@@ -109,10 +114,16 @@ export namespace Tunnel {
 
           const id = yield* certificate.issue(csr);
 
-          yield* db.tunnel.update({
-            ...info,
-            certificateID: id,
-          });
+          yield* db.tunnel
+            .update(
+              new Tunnel.Info({
+                id: info.id,
+                hostname: info.hostname,
+                state: info.state,
+                certificateID: id,
+              }),
+            )
+            .pipe(Effect.orDie);
         }),
       });
     }),

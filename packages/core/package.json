@@ -26,12 +26,15 @@
   },
   "dependencies": {
     "@effect/language-service": "catalog:",
+    "@effect/platform-node": "catalog:",
     "@peculiar/acme-client": "catalog:",
     "@peculiar/acme-core": "catalog:",
     "@peculiar/acme-protocol": "catalog:",
     "@peculiar/jose": "catalog:",
     "@peculiar/x509": "catalog:",
     "effect": "catalog:",
+    "env-paths": "catalog:",
+    "read-tls-client-hello": "catalog:",
     "reflect-metadata": "catalog:"
   },
   "devDependencies": {

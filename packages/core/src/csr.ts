@@ -37,10 +37,10 @@ export namespace CSR {
     // Step 2: Extract Common Name from Subject
     const cn = req.subjectName.getField("CN");
 
-    return {
-      hostname: String(cn),
+    return new Info({
+      hostname: CSR.Hostname.makeUnsafe(String(cn)),
       certificate: req,
       raw: csr,
-    } as Info;
+    });
   });
 }
