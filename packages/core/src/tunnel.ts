@@ -88,6 +88,7 @@ export namespace Tunnel {
         }),
         create: Effect.fn("Tunnel.create")(function* () {
           const id = ID.makeUnsafe(crypto.randomUUID());
+          const token = Token.makeUnsafe(crypto.randomUUID());
           const info = new Tunnel.Info({
             id,
             hostname: CSR.Hostname.makeUnsafe(
@@ -97,14 +98,15 @@ export namespace Tunnel {
             state: "offline",
           });
           yield* db.tunnel.update(info).pipe(Effect.orDie);
-          return { tunnel: info, token: Token.makeUnsafe("asd") };
+          yield* db.tunnel.setToken(token, id).pipe(Effect.orDie);
+          return { tunnel: info, token };
         }),
         auth: Effect.fn("Tunnel.auth")(function* (tunnel, token) {
           const id = yield* db.tunnel.fromToken(token).pipe(Effect.orDie);
           return Option.exists(id, (val) => val === tunnel);
         }),
         bind: Effect.fn("Tunnel.bind")(function* (tunnelID, csr) {
-          const info = yield* fromID(tunnelID).pipe(Effect.orDie);
+          const info = yield* fromID(tunnelID);
 
           if (csr.hostname !== info.hostname)
             return yield* new InvalidHostnameError({

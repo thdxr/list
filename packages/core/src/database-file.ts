@@ -17,6 +17,7 @@ export namespace DatabaseFile {
       yield* fs.makeDirectory(dir, { recursive: true });
       yield* fs.makeDirectory(key("tunnel"), { recursive: true });
       yield* fs.makeDirectory(key("certificate"), { recursive: true });
+      yield* fs.makeDirectory(key("token"), { recursive: true });
 
       function key(...paths: string[]): string {
         return `${dir}/${paths.join("/")}`;
